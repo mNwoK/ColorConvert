@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HSE_Application</string>
+    <string name="goodbye_world">Goodbye, world!!</string>
+    <string name="button">Button</string>
+</resources>
