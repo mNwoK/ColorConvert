@@ -1,20 +1,18 @@
 package com.example.hse_application
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.media.MediaPlayer
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
-import android.widget.TextView
-import androidx.annotation.IdRes
-import androidx.annotation.RawRes
+import androidx.appcompat.widget.AppCompatEditText
 import com.google.android.material.textfield.TextInputEditText
-import java.lang.Math as Math1
+import java.text.DecimalFormat
+import kotlin.math.min
+import kotlin.math.round
 
 
 class MainActivity : AppCompatActivity() {
@@ -27,58 +25,58 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
 
+        val button = findViewById<Button>(R.id.convertButton)
 
-        val button = findViewById<Button>(R.id.button)
 
-        val image = findViewById<ImageView>(R.id.imageView)
 
-//        postcardImageView = findViewById<ImageView>(R.id.image)
-//        val audioPlayer = AudioPlayer1()
-//        postcardImageView?.setOnClickListener {
-//            audioPlayer.playFromFile(this@MainActivity, R.raw.sound)
-//        }
-//        val sp = this.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE)
-
-//        val editor = sp.edit()
-//        editor.putInt(" ", 3)
-//            .putString(snakeKey, "ssss")
-//            .apply()
 
         button.setOnClickListener {
-            changeCmykToRgb()
+            changeRgbToCmyk()
         }
     }
 
-    fun changeCmykToRgb() {
-        val red = findViewById<TextInputEditText>(R.id.red).text
-        val green = findViewById<TextInputEditText>(R.id.green).text
-        val blue = findViewById<TextInputEditText>(R.id.blue).text
+    private fun changeRgbToCmyk() {
+        val red: Double = findViewById<TextInputEditText>(R.id.red).text.toString().toDouble()
+        val green: Double = findViewById<TextInputEditText>(R.id.green).text.toString().toDouble()
+        val blue: Double = findViewById<TextInputEditText>(R.id.blue).text.toString().toDouble()
 
         val cyan = findViewById<TextInputEditText>(R.id.cyan)
         val magenta = findViewById<TextInputEditText>(R.id.magenta)
         val yellow = findViewById<TextInputEditText>(R.id.yellow)
         val black = findViewById<TextInputEditText>(R.id.black)
 
-        val list = rgbToCmyk(red.toString().toInt(), green.toString().toInt(),
-            blue.toString().toInt())
+        val list = rgbToCmyk(red, green, blue)
 
         cyan.setText(list[0].toString())
         magenta.setText(list[1].toString())
         yellow.setText(list[2].toString())
         black.setText(list[3].toString())
+
+        val image = findViewById<ImageView>(R.id.imageView)
+        image.setColorFilter(Color.argb(255, red.toInt(), green.toInt(), blue.toInt()))
     }
 
-    private fun rgbToCmyk(red: Int, green: Int, blue: Int): ArrayList<Int> {
-        val r = red / 255
-        val g = green / 255
-        val b = blue / 255
+    private fun rgbToCmyk(red: Double, green: Double, blue: Double): ArrayList<Double> {
+        val r = min(red / 255, 1.0)
+        val g = min(green / 255, 1.0)
+        val b = min(blue / 255, 1.0)
 
-        val k = 1 - maxOf(r, g, b)
-        val c = (1 - r - k) / (1 - k)
-        val m = (1 - g - k) / (1 - k)
-        val y = (1 - b - k) / (1 - k)
+        val df = DecimalFormat("#.##")
 
-        return arrayListOf<Int>(c, m, y, k)
+
+        var k = 1 - maxOf(r, g, b)
+        val c = df.format((1 - r - k) / (1 - k) * 100).toDouble()
+        val m = df.format((1 - g - k) / (1 - k) * 100).toDouble()
+        val y = df.format((1 - b - k) / (1 - k) * 100).toDouble()
+        k = df.format(k * 100).toDouble()
+
+        val arr = arrayListOf<Double>(c, m, y, k)
+
+        if (arr.any { it.isNaN() }) {
+            return arrayListOf<Double>(.0, .0, .0, 100.0)
+        }
+
+        return arr
     }
 
     companion object {
